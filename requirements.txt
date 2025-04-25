@@ -14,3 +14,4 @@ torch  # Correct package name for PyTorch
 pymongo
 dnspython
 wfdb
+werkzeug==2.0.3
