@@ -1,13 +1,8 @@
 Flask==2.0.1
 pymongo==4.1.1
 matplotlib==3.6.0
-numpy==1.24.3
+numpy==1.23.5  # Try this version instead
 pandas==1.5.0
 gunicorn==20.1.0
-scikit-learn
-seaborn
-tensorflow
-torch
-dnspython
-wfdb
+scikit-learn==1.0.2  # Specify exact version
 werkzeug==2.0.3
