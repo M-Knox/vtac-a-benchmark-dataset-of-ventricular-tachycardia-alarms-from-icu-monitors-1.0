@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import io
 import base64
+import os
+import sys
 from matplotlib.figure import Figure
 from db_connection import get_database
 from model_deployment import register_model_routes, VTaCModelDeployment
@@ -276,5 +278,27 @@ def get_features(event_id):
     return jsonify(features_df.to_dict(orient='records')[0] if not features_df.empty else {})
 
 
+try:
+    from model_deployment import register_model_routes, VTaCModelDeployment
+
+    model_deployment = VTaCModelDeployment()
+except Exception as e:
+    print(f"Warning: Could not initialize model deployment: {e}")
+
+
+    # Define placeholder functions and classes if needed
+    def register_model_routes(app):
+        @app.route('/api/model/status')
+        def model_status():
+            return jsonify({"status": "Model not available", "ready": False})
+
+
+    class VTaCModelDeployment:
+        def predict_alarm_validity(self, event_id):
+            return {"error": "Model not available", "prediction": False}
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

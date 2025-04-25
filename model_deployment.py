@@ -22,8 +22,11 @@ class VTaCModelDeployment:
         self.model = None
         self.feature_names = None
 
-        # Load the latest model
-        self.load_latest_model()
+        try:
+            # Load the latest model
+            self.load_latest_model()
+        except Exception as e:
+            print(f"Warning: Could not load model during initialization: {e}")
 
     def load_latest_model(self):
         """
@@ -33,6 +36,13 @@ class VTaCModelDeployment:
             True if model loaded successfully, False otherwise
         """
         try:
+
+            #Check if the model directory exists
+            if not os.path.exists(self.model_dir):
+                os.makesdir(self.model_dir)
+                print(f"Created missing model directory: {self.model_dir}")
+                return False
+
             # Find all model files
             model_files = [f for f in os.listdir(self.model_dir) if f.endswith('.pkl') and f != 'feature_names.pkl']
 
@@ -125,52 +135,58 @@ class VTaCModelDeployment:
         Returns:
             DataFrame of features for the event
         """
-        from model_builder import VTaCModelBuilder
 
-        # Create a model builder to extract features
-        builder = VTaCModelBuilder()
+        try:
+            from model_builder import VTaCModelBuilder
 
-        # Get event data
-        event = self.db.alarm_events.find_one({"event_id": event_id})
-        if not event:
-            print(f"Event {event_id} not found")
-            return None
+            # Create a model builder to extract features
+            builder = VTaCModelBuilder()
 
-        # Get all available signal types for this event
-        signal_types = self.db.waveform_data.distinct(
-            "metadata.signal_type",
-            {"metadata.event_id": event_id}
-        )
+            # Get event data
+            event = self.db.alarm_events.find_one({"event_id": event_id})
+            if not event:
+                print(f"Event {event_id} not found")
+                return None
 
-        if not signal_types:
-            print(f"No signal data found for event {event_id}")
-            return None
+            # Get all available signal types for this event
+            signal_types = self.db.waveform_data.distinct(
+                "metadata.signal_type",
+                {"metadata.event_id": event_id}
+            )
 
-        # Extract features
-        features = {"event_id": event_id}
+            if not signal_types:
+                print(f"No signal data found for event {event_id}")
+                return None
 
-        # Add metadata features
-        metadata_features = builder.extract_metadata_features(event_id)
-        if metadata_features:
-            features.update(metadata_features)
+            # Extract features
+            features = {"event_id": event_id}
 
-        # Process each signal type
-        for signal_type in signal_types:
-            # Statistical features
-            stat_features = builder.extract_statistical_features(event_id, signal_type)
-            if stat_features:
-                features.update(stat_features)
+            # Add metadata features
+            metadata_features = builder.extract_metadata_features(event_id)
+            if metadata_features:
+                features.update(metadata_features)
 
-            # Signal crossing features
-            crossing_features = builder.extract_signal_crossing_features(event_id, signal_type)
-            if crossing_features:
-                features.update(crossing_features)
+            # Process each signal type
+            for signal_type in signal_types:
+                # Statistical features
+                stat_features = builder.extract_statistical_features(event_id, signal_type)
+                if stat_features:
+                    features.update(stat_features)
 
-        # Convert to dataframe
-        features_df = pd.DataFrame([features])
-        features_df.set_index('event_id', inplace=True)
+                # Signal crossing features
+                crossing_features = builder.extract_signal_crossing_features(event_id, signal_type)
+                if crossing_features:
+                    features.update(crossing_features)
 
-        return features_df
+            # Convert to dataframe
+            features_df = pd.DataFrame([features])
+            features_df.set_index('event_id', inplace=True)
+
+            return features_df
+
+        except ImportError:
+            print("Could not import VTaCModelBuilder - feature extraction unavailable")
+            return pd.DataFrame([{"event_id": event_id}]).set_index('event_id')
 
     def predict_alarm_validity(self, event_id):
         """
@@ -186,9 +202,9 @@ class VTaCModelDeployment:
         if self.model is None:
             return {
                 "error": "Model not loaded",
-                "prediction": None,
-                "probability": None,
-                "confidence": None
+                "prediction": False,
+                "probability": 0.5,
+                "confidence": 0.01
             }
 
         # Extract features
