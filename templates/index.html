@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICU Alarm Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #00A2B3;
+            --secondary-color: #13AA52;
+            --accent-color: #F1F6FA;
+            --text-color: #1E4A5F;
+            --border-color: #E3EBF6;
+            --danger-color: #E53935;
+            --warning-color: #FB8C00;
+            --background-color: #F8FAFC;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            color: white;
+            font-weight: bold;
+            padding: 15px 0;
+        }
+
+        .main-header {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            padding: 25px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0;
+        }
+
+        .subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            transition: transform 0.2s;
+            height: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            border-top-left-radius: 12px !important;
+            border-top-right-radius: 12px !important;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .equal-height-cards {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .equal-height-cards .card-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            font-weight: 600;
+            border-top: none;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(241, 246, 250, 0.5);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 162, 179, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: #0090a0;
+            border-color: #0090a0;
+        }
+
+        .list-group-item {
+            border-color: var(--border-color);
+            padding: 12px 20px;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: white;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .text-danger {
+            color: var(--danger-color) !important;
+        }
+
+        .text-warning {
+            color: var(--warning-color) !important;
+        }
+
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            padding: 15px 20px;
+        }
+
+        .modal-title {
+            font-weight: 600;
+        }
+
+        .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .spinner-border {
+            color: var(--primary-color);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 20px 0;
+            background-color: white;
+            border-top: 1px solid var(--border-color);
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+
+        .bg-secondary {
+            background-color: var(--secondary-color) !important;
+        }
+
+        .bg-danger {
+            background-color: var(--danger-color) !important;
+        }
+
+        .bg-warning {
+            background-color: var(--warning-color) !important;
+        }
+
+        .event-details-card {
+            padding: 20px;
+            text-align: left;
+        }
+
+        .event-details-card p {
+            margin-bottom: 15px;
+        }
+
+        .progress {
+            height: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            text-align: center;
+            line-height: 25px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">ICU Monitor</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-12 text-center">
+                    <h1>ICU Ventricular Tachycardia Alarm Dashboard</h1>
+                    <p class="subtitle">Monitor and analyze patient alarm patterns</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Stats Summary -->
+        <div class="row mb-4" id="stats-summary">
+            <!-- Will be populated with JavaScript -->
+        </div>
+
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-md-6 d-flex">
+                <div class="card equal-height-cards w-100">
+                    <div class="card-header">
+                        <i class="bi bi-bar-chart-fill me-2"></i>Alarm Statistics
+                    </div>
+                    <div class="card-body">
+                        <div id="alarm-stats">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status"></div>
+                                <p>Loading statistics...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-md-6 d-flex">
+                <div class="card equal-height-cards w-100">
+                    <div class="card-header">
+                        <i class="bi bi-people-fill me-2"></i>Top Patients with False Alarms
+                    </div>
+                    <div class="card-body">
+                        <div id="top-patients">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status"></div>
+                                <p>Loading patient data...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Events -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-clock-history me-2"></i>Recent Alarm Events
+            </div>
+            <div class="card-body">
+                <div id="events-list">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status"></div>
+                        <p>Loading event data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">© 2025 ICU Monitoring System</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0">Powered by MongoDB Atlas</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css"></script>
+    <script>
+        // Fetch alarm stats
+        $.getJSON('/api/alarm-stats', function(data) {
+            console.log("Alarm stats data:", data);
+
+            // Update the stats summary at the top
+            const statsSummaryHtml = `
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.total_count}</div>
+                        <div class="stat-label">Total Alarms</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.true_count}</div>
+                        <div class="stat-label">True Alarms (${data.true_percentage}%)</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <div class="stat-number">${data.false_count}</div>
+                        <div class="stat-label">False Alarms (${data.false_percentage}%)</div>
+                    </div>
+                </div>
+            `;
+            $('#stats-summary').html(statsSummaryHtml);
+
+            // Update the alarm stats card
+            const statsHtml = `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="progress">
+                            <div class="progress-bar bg-danger" role="progressbar"
+                                style="width: ${data.true_percentage}%"
+                                aria-valuenow="${data.true_percentage}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                True: ${data.true_percentage}%
+                            </div>
+                            <div class="progress-bar bg-warning" role="progressbar"
+                                style="width: ${data.false_percentage}%"
+                                aria-valuenow="${data.false_percentage}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                False: ${data.false_percentage}%
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <p><strong>Total Alarms:</strong> ${data.total_count}</p>
+                            <p><strong>True Alarms:</strong> ${data.true_count} (${data.true_percentage}%)</p>
+                            <p><strong>False Alarms:</strong> ${data.false_count} (${data.false_percentage}%)</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('#alarm-stats').html(statsHtml);
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+            $('#alarm-stats').html('<div class="alert alert-danger">Error loading stats: ' + textStatus + '</div>');
+        });
+
+        // Fetch top patients with false alarms
+        $.getJSON('/api/top-patients', function(data) {
+            console.log("Top patients data:", data);
+
+            if (!data || data.length === 0) {
+                $('#top-patients').html('<div class="alert alert-info">No patient data found.</div>');
+                return;
+            }
+
+            let patientsHtml = '<div class="table-responsive"><table class="table table-hover"><thead><tr><th>Patient ID</th><th>False Alarm Count</th></tr></thead><tbody>';
+
+            data.forEach(patient => {
+                patientsHtml += `
+                    <tr>
+                        <td>Patient ${patient.patient_id || 'Unknown'}</td>
+                        <td><span class="badge bg-warning rounded-pill">${patient.false_alarm_count}</span></td>
+                    </tr>
+                `;
+            });
+
+            patientsHtml += '</tbody></table></div>';
+            $('#top-patients').html(patientsHtml);
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+            $('#top-patients').html('<div class="alert alert-danger">Error loading patient data: ' + textStatus + '</div>');
+        });
+
+        // Fetch recent events
+        $.getJSON('/api/events', function(data) {
+            console.log("Events data:", data);
+
+            // Extract the events array from the response object
+            const events = data.events || [];
+
+            if (!events || events.length === 0) {
+                $('#events-list').html('<div class="alert alert-info">No events found.</div>');
+                return;
+            }
+
+            try {
+                let eventsHtml = '<div class="table-responsive"><table class="table table-hover">';
+                eventsHtml += '<thead><tr><th>Event ID</th><th>Patient ID</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+
+                events.forEach(event => {
+                    const alarmStatus = event.is_true_alarm
+                        ? '<span class="badge bg-danger">True Alarm</span>'
+                        : '<span class="badge bg-warning">False Alarm</span>';
+
+                    eventsHtml += `
+                        <tr>
+                            <td>${event.event_id || 'N/A'}</td>
+                            <td>Patient ${event.patient_id || 'N/A'}</td>
+                            <td>${alarmStatus}</td>
+                            <td><button class="btn btn-sm btn-primary view-details" data-event-id="${event.event_id}">Details</button></td>
+                        </tr>
+                    `;
+                });
+
+                eventsHtml += '</tbody></table></div>';
+                $('#events-list').html(eventsHtml);
+
+                // Add event listeners for detail view buttons
+                $('.view-details').click(function() {
+                    const eventId = $(this).data('event-id');
+                    showEventDetails(eventId);
+                });
+            } catch (error) {
+                console.error("Error processing events data:", error);
+                $('#events-list').html('<div class="alert alert-danger">Error processing events: ' + error.message + '</div>');
+            }
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+            $('#events-list').html('<div class="alert alert-danger">Error loading events: ' + textStatus + '</div>');
+        });
+
+        function showEventDetails(eventId) {
+            // Create modal for event details
+            const modalHtml = `
+                <div class="modal fade" id="eventModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Event Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body" id="event-detail-content">
+                                <div class="text-center">
+                                    <div class="spinner-border" role="status"></div>
+                                    <p>Loading event details...</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('body').append(modalHtml);
+            const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+            eventModal.show();
+
+            // Load event details
+            $.getJSON(`/api/event/${eventId}`)
+                .done(function(data) {
+                    console.log("Event details:", data);
+
+                    try {
+                        // Extract the event object from the response
+                        const event = data.event || {};
+                        const prediction = data.prediction || {};
+
+                        const alarmStatus = event.is_true_alarm
+                            ? '<span class="badge bg-danger">True Alarm</span>'
+                            : '<span class="badge bg-warning">False Alarm</span>';
+
+                        let detailsHtml = `
+                            <div class="card event-details-card border-0 mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h4>Event ${event.event_id || 'N/A'}</h4>
+                                    ${alarmStatus}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Patient ID:</strong><br>Patient ${event.patient_id || 'N/A'}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Alarm Type:</strong><br>${event.alarm_type || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Timestamp:</strong><br>${event.timestamp || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        if (event.notes) {
+                            detailsHtml += `
+                                <div class="card border-0 bg-light p-3 mb-3">
+                                    <h5 class="card-title">Notes</h5>
+                                    <p class="card-text">${event.notes}</p>
+                                </div>
+                            `;
+                        }
+
+                        // Add prediction information if available
+                        if (prediction && Object.keys(prediction).length > 0) {
+                            detailsHtml += `
+                                <div class="card border-0 bg-light p-3">
+                                    <h5 class="card-title">Model Prediction</h5>
+                                    <p><strong>Predicted:</strong> ${prediction.is_true ? 'True Alarm' : 'False Alarm'}</p>
+                                </div>
+                            `;
+                        }
+
+                        $('#event-detail-content').html(detailsHtml);
+                    } catch (error) {
+                        console.error("Error processing event details:", error);
+                        $('#event-detail-content').html(`
+                            <div class="alert alert-danger">
+                                Error processing event details: ${error.message}
+                            </div>
+                        `);
+                    }
+                })
+                .fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX error:", textStatus, errorThrown);
+                    $('#event-detail-content').html(`
+                        <div class="alert alert-danger">
+                            Failed to load event details: ${textStatus}
+                        </div>
+                    `);
+                });
+
+            // Remove modal from DOM when hidden
+            document.getElementById('eventModal').addEventListener('hidden.bs.modal', function() {
+                $(this).remove();
+            });
+        }
+    </script>
+</body>
+</html>
